@@ -1,8 +1,17 @@
-import "./globals.css";
-import { Inter } from "next/font/google";
 import { TRPCProvider } from "./trpc/client";
 
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "./components/theme-provider";
+
 const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "TLDraw Editor",
+  description: "A simple drawing editor built with Next.js and TLDraw",
+};
 
 export default function RootLayout({
   children,
@@ -10,9 +19,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <TRPCProvider>{children}</TRPCProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TRPCProvider>{children}</TRPCProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
