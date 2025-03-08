@@ -7,7 +7,6 @@ import {
   T,
   TLBaseShape,
   TLResizeInfo,
-  Tldraw,
   resizeBox,
 } from "tldraw";
 import "tldraw/tldraw.css";
