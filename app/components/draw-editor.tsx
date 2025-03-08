@@ -1,13 +1,25 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
+import { Cog } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Editor, TLEventMapHandler, Tldraw } from "tldraw";
+import {
+  DefaultMenuPanel,
+  Editor,
+  TLComponents,
+  TLEventMapHandler,
+  Tldraw,
+} from "tldraw";
 import "tldraw/tldraw.css";
+import HistoryDrawer from "./history-drawer";
 
 export function DrawEditor() {
   const [editor, setEditor] = useState<Editor | undefined>();
   const [lastEvent, setLastEvent] = useState<string | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const setAppToState = useCallback((editor: Editor) => {
     setEditor(editor);
@@ -97,10 +109,28 @@ export function DrawEditor() {
     }
   }, [lastEvent]);
 
+  function CustomMenuPanel() {
+    return (
+      <div className="ml-12 flex  gap-2">
+        <DefaultMenuPanel />
+      </div>
+    );
+  }
+
+  const components: TLComponents = {
+    MenuPanel: CustomMenuPanel,
+  };
+
   return (
-    <div style={{ display: "flex" }}>
-      <div style={{ width: "100%", height: "100vh" }}>
-        <Tldraw onMount={setAppToState} />
+    <div className="w-full h-[100vh] flex">
+      <HistoryDrawer isExpanded={isExpanded} />
+      <div className="flex-1 h-full w-full relative">
+        <div className="absolute top-0 left-0 z-10">
+          <Button onClick={() => setIsExpanded(!isExpanded)}>
+            <Cog />
+          </Button>
+        </div>
+        <Tldraw onMount={setAppToState} components={components} />
       </div>
     </div>
   );
