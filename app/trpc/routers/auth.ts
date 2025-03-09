@@ -66,7 +66,7 @@ export const authRouter = createTRPCRouter({
     }),
   signOut: baseProcedure.mutation(async () => {
     await authClient.signOut();
-    // console.log("signOut", ctx);
-    // ctx.res.setHeader("Set-Cookie", "auth-token=; Path=/; HttpOnly; Max-Age=0");
+
+    return { success: true };
   }),
 });
