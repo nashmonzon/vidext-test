@@ -15,21 +15,25 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DateTime } from "luxon";
 
 import { Snapshot, User } from "@prisma/client";
+import { trpc } from "../trpc/client";
+import { useRouter } from "next/navigation";
 
 export default function HistoryDrawer({
   isExpanded,
   data,
   user,
+  setSnapshotId,
 }: {
   isExpanded: boolean;
   data: Snapshot[];
   user: User;
+  setSnapshotId: (snapshotId: string) => void;
 }) {
   const showContent = useToggleContent(isExpanded);
   const [isOpen, setIsOpen] = useState(false);
@@ -37,6 +41,20 @@ export default function HistoryDrawer({
     const savedId = localStorage.getItem("selectedSnapshotId");
     return savedId ? savedId : data.length > 0 ? data[0].id : null;
   });
+  const router = useRouter();
+
+  const signOut = trpc.auth.signOut.useMutation();
+
+  const handleSignOut = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await signOut.mutateAsync();
+
+    localStorage.clear();
+
+    router.push(`/login`);
+    console.log("Sign out");
+    // Add your sign in logic here
+  };
 
   useEffect(() => {
     if (selectedSnapshotId) {
@@ -44,6 +62,7 @@ export default function HistoryDrawer({
       const url = new URL(window.location.href);
       url.searchParams.set("d", selectedSnapshotId);
       window.history.pushState({}, "", url.toString());
+      setSnapshotId(selectedSnapshotId);
     }
   }, [selectedSnapshotId]);
 
@@ -89,7 +108,7 @@ export default function HistoryDrawer({
                     key={snapshot.id}
                     onClick={() => setSelectedSnapshotId(snapshot.id)}
                   >
-                    {DateTime.fromJSDate(snapshot.updatedAt).toFormat(
+                    {DateTime.fromJSDate(snapshot.createdAt).toFormat(
                       "HH:mm dd/MM/yyyy"
                     )}
                   </Button>
@@ -105,6 +124,14 @@ export default function HistoryDrawer({
                 </AvatarFallback>
               </Avatar>
               <CardTitle>{user.email}</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-9 p-0"
+                onClick={handleSignOut}
+              >
+                <LogOut />
+              </Button>
             </div>
           </CardFooter>
         </>

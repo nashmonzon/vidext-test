@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/app/trpc/client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function AuthForm() {
   const [email, setEmail] = useState("");
@@ -24,12 +24,14 @@ export default function AuthForm() {
   const [name, setName] = useState("");
   const signIn = trpc.auth.signIn.useMutation();
   const signUp = trpc.auth.signUp.useMutation();
+  const router = useRouter();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     const { user } = await signIn.mutateAsync({ email, password });
-    console.log(user);
-    redirect(`/f/${user.id}`);
+    if (user) {
+      router.push(`/f/${user.id}`);
+    }
     console.log("Sign in:", { email, password });
     // Add your sign in logic here
   };
@@ -37,7 +39,9 @@ export default function AuthForm() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const { user } = await signUp.mutateAsync({ name, email, password });
-    redirect(`/f/${user.id}`);
+    if (user) {
+      router.push(`/f/${user.id}`);
+    }
     console.log("Sign up:", { name, email, password });
     // Add your sign up logic here
   };

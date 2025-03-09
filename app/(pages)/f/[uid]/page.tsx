@@ -17,6 +17,7 @@ export default async function Dashboard({
 
   const snapshots = await trpc.user.getUserSnapshots({ userId: userId });
   const user = await trpc.user.getUser({ userId: userId });
+
   console.log(snapshots, "snapshots");
   if (!snapshots || !user) {
     return;
