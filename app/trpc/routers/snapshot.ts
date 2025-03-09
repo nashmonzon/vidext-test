@@ -9,12 +9,14 @@ export const snapshotRouter = createTRPCRouter({
     .input(
       z.object({
         data: z.any(),
+        userId: z.string(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.snapshot.create({
         data: {
           data: input.data,
+          userId: input.userId,
         },
       });
     }),
