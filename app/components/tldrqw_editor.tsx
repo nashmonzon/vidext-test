@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DefaultMenuPanel,
+  DefaultToolbar,
   Editor,
   TLComponents,
   TLEventMapHandler,
@@ -14,6 +15,7 @@ import "tldraw/tldraw.css";
 
 import { trpc } from "../trpc/client";
 import { Snapshot } from "@prisma/client";
+import { useTheme } from "next-themes";
 
 export function TldrqwEditor({
   userId,
@@ -26,12 +28,12 @@ export function TldrqwEditor({
   const [lastEvent, setLastEvent] = useState<string | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const saveSnapshot = trpc.snapshot.saveSnapshot.useMutation();
+  const { theme } = useTheme();
 
   const setAppToState = useCallback((editor: Editor) => {
     setEditor(editor);
 
     if (snapshots?.data !== null && Object.keys(snapshots.data).length > 0) {
-      console.log("snapshots", snapshots.data);
       loadSnapshot(editor.store, JSON.parse(snapshots.data as string));
     }
   }, []);
@@ -132,21 +134,36 @@ export function TldrqwEditor({
     }
   }, [lastEvent]);
 
+  useEffect(() => {
+    if (editor) {
+      editor.user.updateUserPreferences({
+        colorScheme: theme === "dark" ? "dark" : "light",
+      });
+    }
+  }, [theme, editor]);
+
   const components: TLComponents = {
-    MenuPanel: CustomMenuPanel,
+    MenuPanel: null,
+    Toolbar: CustomToolbar,
   };
 
   return (
     <div className="flex-1 h-full w-full relative">
-      <Tldraw onMount={setAppToState} components={components} />
+      <Tldraw
+        onMount={setAppToState}
+        components={components}
+        persistenceKey="disable-pages"
+        options={{ maxPages: 1 }}
+      />
     </div>
   );
 }
 
-function CustomMenuPanel() {
+function CustomToolbar() {
   return (
-    <div className="ml-12 flex  gap-2">
+    <div className="ml-12 flex flex-col">
       <DefaultMenuPanel />
+      <DefaultToolbar />
     </div>
   );
 }
