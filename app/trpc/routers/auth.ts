@@ -43,7 +43,7 @@ export const authRouter = createTRPCRouter({
         name: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Usa Better Auth para registrar un nuevo usuario
       const user = await auth.api.signUpEmail({
         body: {
@@ -51,8 +51,17 @@ export const authRouter = createTRPCRouter({
           password: input.password,
           name: input.name,
         },
-        asResponse: false, // Cambia a true si necesitas un objeto de respuesta
+        asResponse: false,
       });
+
+      // Crea un registro de snapshot para el nuevo usuario
+      await ctx.prisma.snapshot.create({
+        data: {
+          userId: user.user.id,
+          data: {},
+        },
+      });
+
       return user;
     }),
   signOut: baseProcedure.mutation(async () => {

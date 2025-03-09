@@ -27,16 +27,17 @@ export default function AuthForm() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = await signIn.mutateAsync({ email, password });
-    redirect(`/dashboard/${user.user.id}`);
+    const { user } = await signIn.mutateAsync({ email, password });
+    console.log(user);
+    redirect(`/dashboard/${user.id}`);
     console.log("Sign in:", { email, password });
     // Add your sign in logic here
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = await signUp.mutateAsync({ name, email, password });
-    redirect(`/dashboard/${user.user.id}`);
+    const { user } = await signUp.mutateAsync({ name, email, password });
+    redirect(`/dashboard/${user.id}`);
     console.log("Sign up:", { name, email, password });
     // Add your sign up logic here
   };

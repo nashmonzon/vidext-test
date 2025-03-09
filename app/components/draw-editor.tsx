@@ -10,14 +10,26 @@ import {
   TLComponents,
   TLEventMapHandler,
   Tldraw,
+  getSnapshot,
 } from "tldraw";
 import "tldraw/tldraw.css";
 import HistoryDrawer from "./history-drawer";
+import { trpc } from "../trpc/client";
+import { Snapshot, User } from "@prisma/client";
 
-export function DrawEditor() {
+export function DrawEditor({
+  userId,
+  snapshots,
+  user,
+}: {
+  userId: string;
+  snapshots: Snapshot[];
+  user: User;
+}) {
   const [editor, setEditor] = useState<Editor | undefined>();
   const [lastEvent, setLastEvent] = useState<string | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveSnapshot = trpc.snapshot.saveSnapshot.useMutation();
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -103,8 +115,18 @@ export function DrawEditor() {
         clearTimeout(debounceTimeoutRef.current);
       }
 
-      debounceTimeoutRef.current = setTimeout(() => {
-        console.log("Enviando al backend:", lastEvent);
+      debounceTimeoutRef.current = setTimeout(async () => {
+        if (!editor) return;
+        const { document, session } = getSnapshot(editor?.store);
+        const data = JSON.stringify({
+          document,
+          session,
+        });
+        await saveSnapshot.mutateAsync({
+          data,
+          userId: userId,
+        });
+        console.log("Enviando al backend:", lastEvent, editor?.store);
       }, 500);
     }
   }, [lastEvent]);
@@ -123,7 +145,7 @@ export function DrawEditor() {
 
   return (
     <div className="w-full h-[100vh] flex">
-      <HistoryDrawer isExpanded={isExpanded} />
+      <HistoryDrawer isExpanded={isExpanded} data={snapshots} user={user} />
       <div className="flex-1 h-full w-full relative">
         <div className="absolute top-0 left-0 z-10">
           <Button onClick={() => setIsExpanded(!isExpanded)}>
