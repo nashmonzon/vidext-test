@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DateTime } from "luxon";
 
 import { Snapshot, User } from "@prisma/client";
 
@@ -32,6 +33,19 @@ export default function HistoryDrawer({
 }) {
   const showContent = useToggleContent(isExpanded);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedSnapshotId, setSelectedSnapshotId] = useState(() => {
+    const savedId = localStorage.getItem("selectedSnapshotId");
+    return savedId ? savedId : data.length > 0 ? data[0].id : null;
+  });
+
+  useEffect(() => {
+    if (selectedSnapshotId) {
+      localStorage.setItem("selectedSnapshotId", selectedSnapshotId);
+      const url = new URL(window.location.href);
+      url.searchParams.set("d", selectedSnapshotId);
+      window.history.pushState({}, "", url.toString());
+    }
+  }, [selectedSnapshotId]);
 
   return (
     <Card
@@ -67,8 +81,17 @@ export default function HistoryDrawer({
               </div>
               <CollapsibleContent className="space-y-2">
                 {data.map((snapshot) => (
-                  <Button variant="ghost" className="w-full" key={snapshot.id}>
-                    {new Date(snapshot.updatedAt).toISOString()}
+                  <Button
+                    variant="ghost"
+                    className={`w-full ${
+                      selectedSnapshotId === snapshot.id ? "bg-gray-200" : ""
+                    }`}
+                    key={snapshot.id}
+                    onClick={() => setSelectedSnapshotId(snapshot.id)}
+                  >
+                    {DateTime.fromJSDate(snapshot.updatedAt).toFormat(
+                      "HH:mm dd/MM/yyyy"
+                    )}
                   </Button>
                 ))}
               </CollapsibleContent>

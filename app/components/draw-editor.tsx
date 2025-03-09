@@ -11,6 +11,7 @@ import {
   TLEventMapHandler,
   Tldraw,
   getSnapshot,
+  loadSnapshot,
 } from "tldraw";
 import "tldraw/tldraw.css";
 import HistoryDrawer from "./history-drawer";
@@ -36,6 +37,21 @@ export function DrawEditor({
   const setAppToState = useCallback((editor: Editor) => {
     setEditor(editor);
   }, []);
+
+  const load = useCallback(async () => {
+    // Obtener el parámetro 'd' de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const snapshotId = urlParams.get("d");
+
+    if (!snapshotId) return;
+
+    const snapshot = snapshots.find((s) => s.id === snapshotId);
+
+    if (snapshot) {
+      console.log("editoda,sdmna,dmsna,dmsna,dsmand,nda,mndar");
+      loadSnapshot(editor?.store, JSON.parse(snapshot.data as string) as any);
+    }
+  }, [editor]);
 
   useEffect(() => {
     if (!editor) return;
@@ -122,14 +138,24 @@ export function DrawEditor({
           document,
           session,
         });
+
+        // Obtener el parámetro 'd' de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const snapshotId = urlParams.get("d") || snapshots[0].id;
+
         await saveSnapshot.mutateAsync({
           data,
           userId: userId,
+          snapshotId: snapshotId, // Usar el snapshotId obtenido de la URL
         });
         console.log("Enviando al backend:", lastEvent, editor?.store);
       }, 500);
     }
   }, [lastEvent]);
+
+  useEffect(() => {
+    load();
+  }, []);
 
   function CustomMenuPanel() {
     return (
